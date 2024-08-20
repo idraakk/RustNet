@@ -1,4 +1,4 @@
-# RustNet: Neural Networks Library
+# RustNet: Neural Networks Library ( WORK IN PROGRESS... )
 
 ## Project Description
 
