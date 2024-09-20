@@ -1,5 +1,4 @@
 # RustNet: Neural Networks Library ( WORK IN PROGRESS... )
-## ( SEMESTER 5 DSA PROJECT )
 ## Project Description
 
 **RustNet** is a neural networks library developed from scratch in Rust. It incorporates advanced data structures and algorithms to support efficient machine learning computations. The library leverages Rust's performance and safety features while implementing core neural network functionalities.
