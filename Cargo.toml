@@ -1,0 +1,12 @@
+[package]
+name = "rust_net" # The name of my project
+version = "0.1.0" # Version of the project
+edition = "2021" # Rust edition
+
+[dependencies]
+ndarray = { version = "0.15", features = ["serde"] } # Numeric library with serialization
+rand = "0.8" # Random number generation
+serde = { version = "1.0", features = ["derive"] } # Serialization/deserialization library
+serde_json = "1.0" # JSON handling library
+csv = "1.1" # CSV file reader/writer
+clap = { version = "4.0", features = ["derive"] } # Command-line argument parser
