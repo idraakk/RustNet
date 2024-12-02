@@ -1,235 +1,401 @@
-# RustNet: Neural Networks Library ( WORK IN PROGRESS... )
-## Project Description
+# Neural Network Library in Rust
 
-**RustNet** is a neural networks library developed from scratch in Rust. It incorporates advanced data structures and algorithms to support efficient machine learning computations. The library leverages Rust's performance and safety features while implementing core neural network functionalities.
+Welcome to the **Neural Network Library in Rust**, a comprehensive, from-scratch implementation of a neural network designed for classifying RF wave data. This project demonstrates how to build a basic neural network library with matrix operations, training, and prediction functionality, entirely in Rust. The neural network is demonstrated through a simple classification of radio frequency waves through synthetic self generated data. It includes:
 
-## Key Features
+- **Custom Serialization and Deserialization** for model persistence.
 
-- **Tensor Operations**: Implemented a custom tensor class using dynamic arrays to efficiently handle multi-dimensional data and perform matrix operations, including multiplication, addition, and transposition.
-- **Graph Data Structures**: Designed and utilized Directed Acyclic Graphs (DAGs) to model the computational flow of neural networks, facilitating the forward and backward passes through various layers.
-- **Neural Network Layers**: Developed core layer types, including Dense (Fully Connected) and Activation Layers, using matrix operations and efficient algorithms to compute layer outputs and gradients.
-- **Activation Functions**: Implemented essential activation functions (ReLU, Sigmoid) as element-wise operations on tensors, applying concepts from numerical methods and functional programming.
-- **Backpropagation**: Employed dynamic programming techniques to efficiently compute gradients during backpropagation, optimizing memory usage and computational efficiency.
-- **Optimization Algorithms**: Integrated basic gradient descent and its variants, such as Stochastic Gradient Descent (SGD), leveraging efficient algorithms for parameter updates and convergence.
+- **Matrix Operations** using the `ndarray` crate.
 
-## Technologies Used
+- **Training and Prediction** pipelines with detailed data preprocessing.
 
-- **Programming Language**: Rust
-- **Libraries**: `ndarray` for tensor operations, `nalgebra` for linear algebra
-
-## DSA Concepts Applied
-
-- **Matrix Operations**: Efficient implementation of matrix multiplication and other linear algebra operations using custom algorithms and data structures.
-- **Dynamic Programming**: Utilized for optimizing backpropagation and gradient computation, reducing redundant calculations and improving performance.
-- **Graph Theory**: Applied DAGs to manage the computational flow and dependencies in neural networks, ensuring accurate and efficient data processing.
-- **Hash Tables**: Used for managing and accessing parameters and gradients during training, ensuring quick updates and retrieval.
-
-## Impact
-
-- **Performance**: Achieved high computational efficiency and memory safety with Rust’s low-level control and advanced DSA techniques.
-- **Scalability**: Designed to support various neural network architectures and datasets, providing a robust foundation for further enhancements and real-world applications.
+- **Command-line Interface (CLI)** for ease of use.
 
 
-# Setting up the Rust Project
-First, create a new Rust project:
-```bash
-cargo new neural_network
-cd neural_network
+## **Table of Contents**
+
+- Project Overview
+
+- Features
+
+- Directory Structure
+
+- Dependencies
+
+- Getting Started
+
+- Usage
+
+- Training the Model
+
+- Making Predictions
+
+- File-wise Functions and Significance
+
+- Technical Details
+
+- Data Preprocessing
+
+- Network Architecture
+
+- Training
+
+- Prediction
+
+- Serialization
+
+- Future Improvements
+
+- Contributing
+
+- License
+
+
+## **Project Overview**
+
+This library implements a basic feedforward neural network for classifying RF wave data. The network uses fully connected layers, ReLU activation, and mean squared error as the loss function. The focus is on understanding neural network mechanics, matrix operations, and Rust's ownership and borrowing concepts.
+
+
+## **Features**
+
+- **Customizable Network Architecture:** Easily specify the number of layers and neurons.
+
+- **CLI Interface:** Train models and make predictions directly from the command line.
+
+- **Serialization Support:** Save and load models to/from JSON files.
+
+- **Data Preprocessing:** Normalization and dataset splitting for training and prediction.
+
+- **Detailed Logging:** Step-by-step matrix operations logged during training and prediction for debugging and learning.
+
+
+## **Directory Structure**
+
 ```
-Edit the Cargo.toml file to add the necessary dependencies. We’ll use the rand crate to initialize weights and biases with random values:
-```toml
+.
+├── Cargo.toml        # Project metadata and dependencies
+├── src
+│   ├── main.rs       # Entry point with CLI commands
+│   ├── activations.rs # Activation functions and derivatives
+│   ├── data.rs       # Data loading and preprocessing
+│   ├── layers.rs     # Dense layer implementation
+│   ├── loss.rs       # Loss function
+│   ├── serde_arrays.rs # Custom serialization for ndarray
+│   ├── train.rs      # Training logic
+│   ├── lib.rs        # Module declarations
+├── rfdatagenerator.py # Script for generating RF wave data
+</code></pre>
+
+## **Dependencies**
+
+The project relies on the following crates:
+
+- **ndarray**: For matrix operations.
+
+- **serde**: For serialization and deserialization.
+
+- **serde_json**: For JSON file handling.
+
+- **rand**: For random number generation (e.g., weights initialization).
+
+- **clap**: For command-line argument parsing.
+
+- **csv**: For loading and saving CSV files.
+
+Add them to `Cargo.toml`:
+
+```
 [dependencies]
-rand = "0.8.5"
+ndarray = { version = "0.15", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8"
+clap = { version = "4.0", features = ["derive"] }
+csv = "1.1"
+</code></pre>
+
+## **Getting Started**
+
+### **Prerequisites**
+
+- **Rust**: Install Rust and Cargo from[ ](https://www.rust-lang.org/)[Rust's official website](https://www.rust-lang.org/).
+
+- **Python**: Required for generating the dataset using the included Python script.
+
+### **Clone the Repository**
+
 ```
-Now, let’s write the code for the neural network.
+git clone https://github.com/your-username/neural-net-rust.git
+cd neural-net-rust
+</code></pre>
+### **Install Dependencies**
 
-# Step 1: Define the Neural Network Structure
-Create a main.rs file inside the src folder and define the basic structure of the network:
-```rust
-extern crate rand;
-use rand::Rng;
-
-struct NeuralNetwork {
-    input_size: usize,
-    hidden_size: usize,
-    output_size: usize,
-    weights_ih: Vec<Vec<f64>>, // Weights between input and hidden layers
-    weights_ho: Vec<Vec<f64>>, // Weights between hidden and output layers
-    biases_h: Vec<f64>,        // Biases for hidden layer
-    biases_o: Vec<f64>,        // Biases for output layer
-}
-
-impl NeuralNetwork {
-    // Initialize the neural network with random weights and biases
-    fn new(input_size: usize, hidden_size: usize, output_size: usize) -> NeuralNetwork {
-        let mut rng = rand::thread_rng();
-
-        let weights_ih: Vec<Vec<f64>> = (0..input_size)
-            .map(|_| (0..hidden_size).map(|_| rng.gen_range(-1.0..1.0)).collect())
-            .collect();
-        
-        let weights_ho: Vec<Vec<f64>> = (0..hidden_size)
-            .map(|_| (0..output_size).map(|_| rng.gen_range(-1.0..1.0)).collect())
-            .collect();
-
-        let biases_h: Vec<f64> = (0..hidden_size).map(|_| rng.gen_range(-1.0..1.0)).collect();
-        let biases_o: Vec<f64> = (0..output_size).map(|_| rng.gen_range(-1.0..1.0)).collect();
-
-        NeuralNetwork {
-            input_size,
-            hidden_size,
-            output_size,
-            weights_ih,
-            weights_ho,
-            biases_h,
-            biases_o,
-        }
-    }
-}
 ```
-This initializes a neural network with random weights and biases.
+cargo build
+</code></pre>
 
-# Step 2: Implement the Activation Functions
-Let’s implement some basic activation functions: ReLU for the hidden layer and Sigmoid for the output layer.
-```rust
-fn relu(x: f64) -> f64 {
-    if x > 0.0 { x } else { 0.0 }
-}
+## **Usage**
 
-fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
-}
+### **1. Generate Dataset**
+
+Run the Python script to generate RF wave data:
+
 ```
-# Step 3: Forward Propagation
-Next, implement the forward propagation method. The data will pass from the input layer to the hidden layer and then to the output layer.
-```rust
-impl NeuralNetwork {
-    fn forward(&self, input: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
-        // Calculate hidden layer activations
-        let hidden_activations: Vec<f64> = (0..self.hidden_size)
-            .map(|i| {
-                let weighted_sum: f64 = input.iter()
-                    .zip(self.weights_ih.iter().map(|row| row[i]))
-                    .map(|(x, w)| x * w)
-                    .sum::<f64>() + self.biases_h[i];
-                relu(weighted_sum)
-            })
-            .collect();
+python rfdatagenerator.py
+</code></pre>
+This creates a file `rf_data.csv` with 1000 samples of RF wave data.
 
-        // Calculate output layer activations
-        let output_activations: Vec<f64> = (0..self.output_size)
-            .map(|i| {
-                let weighted_sum: f64 = hidden_activations.iter()
-                    .zip(self.weights_ho.iter().map(|row| row[i]))
-                    .map(|(x, w)| x * w)
-                    .sum::<f64>() + self.biases_o[i];
-                sigmoid(weighted_sum)
-            })
-            .collect();
 
-        (hidden_activations, output_activations)
-    }
-}
+### **2. Training the Model**
+
+Use the `train` command to train the model:
+
 ```
-# Step 5: Backpropagation and Training
-Next, implement backpropagation to update the weights and biases based on the error and gradients calculated.
-```rust
-impl NeuralNetwork {
-    fn train(&mut self, input: Vec<f64>, target: Vec<f64>, learning_rate: f64) {
-        let (hidden_activations, output_activations) = self.forward(input.clone());
+cargo run -- train --data rf_data.csv
+</code></pre>
+- **Input Data**: `rf_data.csv` (CSV file with features and labels).
 
-        // Output layer error and gradients
-        let output_errors: Vec<f64> = output_activations.iter()
-            .zip(target.iter())
-            .map(|(o, t)| t - o)
-            .collect();
+- **Output Files**:
 
-        let output_gradients: Vec<f64> = output_activations.iter()
-            .zip(output_errors.iter())
-            .map(|(o, e)| e * o * (1.0 - o)) // derivative of sigmoid
-            .collect();
+- `model.json`: Trained model weights and biases.
 
-        // Hidden layer error and gradients
-        let hidden_errors: Vec<f64> = (0..self.hidden_size)
-            .map(|i| self.weights_ho[i].iter()
-                .zip(output_gradients.iter())
-                .map(|(w, g)| w * g)
-                .sum())
-            .collect();
+- `predictions.csv`: Predictions and actual labels during the final epoch.
 
-        let hidden_gradients: Vec<f64> = hidden_activations.iter()
-            .zip(hidden_errors.iter())
-            .map(|(h, e)| if *h > 0.0 { *e } else { 0.0 }) // derivative of ReLU
-            .collect();
 
-        // Update weights and biases for hidden -> output
-        for i in 0..self.hidden_size {
-            for j in 0..self.output_size {
-                self.weights_ho[i][j] += learning_rate * output_gradients[j] * hidden_activations[i];
-            }
-        }
-        for j in 0..self.output_size {
-            self.biases_o[j] += learning_rate * output_gradients[j];
-        }
+### **3. Making Predictions**
 
-        // Update weights and biases for input -> hidden
-        for i in 0..self.input_size {
-            for j in 0..self.hidden_size {
-                self.weights_ih[i][j] += learning_rate * hidden_gradients[j] * input[i];
-            }
-        }
-        for j in 0..self.hidden_size {
-            self.biases_h[j] += learning_rate * hidden_gradients[j];
-        }
-    }
-}
+Use the `predict` command to make predictions with the trained model:
+
 ```
-# Step 6: Training and Testing the Network
-Now, let’s create a function to train the network using a dataset and a simple loop to iterate over it.
-```rust
-fn main() {
-    // Create the neural network (2 inputs, 3 hidden nodes, 1 output)
-    let mut nn = NeuralNetwork::new(2, 3, 1);
+cargo run -- predict --model model.json --input rf_data.csv
+</code></pre>
+- **Input Data**: `rf_data.csv` (only features are used).
 
-    // Training data (XOR problem)
-    let data = vec![
-        (vec![0.0, 0.0], vec![0.0]),
-        (vec![0.0, 1.0], vec![1.0]),
-        (vec![1.0, 0.0], vec![1.0]),
-        (vec![1.0, 1.0], vec![0.0]),
-    ];
+- **Output**: Predictions are printed to the console.
 
-    // Train the network
-    for epoch in 0..5000 {
-        let mut total_loss = 0.0;
-        for (input, target) in &data {
-            nn.train(input.clone(), target.clone(), 0.1);
-            let output = nn.forward(input.clone()).1;
-            total_loss += mse_loss(&output, target);
-        }
-        if epoch % 1000 == 0 {
-            println!("Epoch {}: Loss = {}", epoch, total_loss / data.len() as f64);
-        }
-    }
 
-    // Test the network
-    for (input, _) in &data {
-        let output = nn.forward(input.clone()).1;
-        println!("Input: {:?}, Output: {:?}", input, output);
-    }
-}
-```
-# Running the Code
-You can now run your neural network with:
-```bash
-cargo run
-```
-# Explanation of the Training:
-- The network is trained on the XOR problem, a standard problem for basic neural networks.
-- We use forward propagation to compute the output.
-- Backpropagation adjusts the weights and biases using gradient descent to minimize the error.
-- The training loop runs for a specified number of epochs, printing the loss periodically.
-# Summary:
-- Input Layer: Takes two inputs (representing the XOR inputs).
-- Hidden Layer: Contains three neurons using ReLU activation.
-- Output Layer: Contains one
+## **File-wise Functions and Significance**
+
+Here is a detailed breakdown of each file and its purpose:
+
+### **1. **`main.rs`
+
+The entry point of the application. Provides a CLI interface for training and prediction.
+
+- **Functions**:
+
+- `normalize`: Normalizes input features to zero mean and unit variance.
+
+- Command handlers:
+
+- `Train`: Handles the training pipeline.
+
+- `Predict`: Handles the prediction pipeline.
+
+### **2. **`activations.rs`
+
+Implements activation functions and their derivatives.
+
+- **Functions**:
+
+- `relu`: Applies the ReLU activation function.
+
+- `relu_derivative`: Computes the derivative of the ReLU function.
+
+- `sigmoid`: Applies the sigmoid activation function (optional for future use).
+
+- `sigmoid_derivative`: Computes the derivative of the sigmoid function.
+
+### **3. **`data.rs`
+
+Handles data loading and preprocessing.
+
+- **Functions**:
+
+- `load_csv`: Loads a dataset from a CSV file into an `ndarray::Array2<f64>`.
+
+### **4. **`layers.rs`
+
+Defines the `DenseLayer` struct, which represents a fully connected layer.
+
+- **Functions**:
+
+- `new`: Initializes a dense layer with random weights and zero biases.
+
+- `forward`: Computes the output of the layer during the forward pass.
+
+### **5. **`loss.rs`
+
+Implements the loss function.
+
+- **Functions**:
+
+- `mean_squared_error`: Computes the mean squared error between predictions and targets.
+
+### **6. **`serde_arrays.rs`
+
+Handles custom serialization and deserialization for `ndarray::Array2<f64>`.
+
+- **Functions**:
+
+- `serialize`: Serializes an `Array2<f64>` into a nested vector.
+
+- `deserialize`: Reconstructs an `Array2<f64>` from serialized data.
+
+### **7. **`train.rs`
+
+Contains the core logic for training and saving the model.
+
+- **Structs**:
+
+- `NeuralNetwork`: Represents the entire neural network.
+
+- **Functions**:
+
+- `new`: Initializes a neural network with specified architecture.
+
+- `forward`: Performs a forward pass through the network.
+
+- `backward`: Performs backpropagation and updates weights and biases.
+
+- `train`: Trains the network using gradient descent.
+
+- `save`: Saves the model to a JSON file.
+
+- `load`: Loads the model from a JSON file.
+
+### **8. **`rfdatagenerator.py`
+
+A Python script to simulate RF wave data for training and testing.
+
+- **Functions**:
+
+- Simulates `Frequency`, `Amplitude`, and corresponding labels.
+
+- Exports data to a CSV file (`rf_data.csv`).
+
+
+## **Technical Details**
+
+### **Data Preprocessing**
+
+1. **Dataset Structure**: Each row in `rf_data.csv` consists of:
+
+- `Frequency`: Feature 1
+
+- `Amplitude`: Feature 2
+
+- `Label`: Target
+
+- **Normalization**: Both features are normalized to zero mean and unit variance.
+
+- **Splitting**: During training, the label column is separated from the features.
+
+### **Network Architecture**
+
+- Example: `[2, 10, 1]`
+
+- **Input Layer**: 2 neurons (features: Frequency and Amplitude).
+
+- **Hidden Layer**: 10 neurons (ReLU activation).
+
+- **Output Layer**: 1 neuron (linear activation).
+
+### **Training**
+
+- **Forward Pass**:
+
+- Computes layer-wise activations and outputs.
+
+- **Loss Function**:
+
+- Mean Squared Error (MSE).
+
+- **Backward Pass**:
+
+- Computes gradients using backpropagation.
+
+- Updates weights and biases using gradient descent.
+
+- **Hyperparameters**:
+
+- Learning Rate: 0.001
+
+- Epochs: 1000
+
+### **Prediction**
+
+- **Input**:
+
+- Normalized features.
+
+- **Output**:
+
+- Final layer activations.
+
+### **Serialization**
+
+- **Model Format**:
+
+- Saved as `model.json`.
+
+- Contains layer weights and biases serialized as nested vectors.
+
+- **Custom Serialization**:
+
+- Uses `serde_arrays` for handling `ndarray::Array2`.
+
+
+## **Future Improvements**
+
+- **Enhanced Model**:
+
+- Support for additional activation functions (e.g., Tanh, Sigmoid).
+
+- Option for multiple hidden layers.
+
+- **Regularization**:
+
+- Implement dropout or L2 regularization.
+
+- **Batch Training**:
+
+- Support for mini-batch gradient descent.
+
+- **Performance Optimization**:
+
+- Parallelize matrix operations.
+
+- **Testing**:
+
+- Add unit tests for critical components.
+
+- **Visualization**:
+
+- Plot training loss and validation metrics.
+
+- **Deployment**:
+
+- Wrap the library in a web API for easy access.
+
+
+## **Contributing**
+
+Contributions are welcome! To get started:
+
+1. Fork the repository.
+
+2. Create a new branch: `git checkout -b feature-name`.
+
+3. Commit your changes: `git commit -m 'Add feature-name'`.
+
+4. Push to the branch: `git push origin feature-name`.
+
+5. Open a pull request.
+
+
+## **License**
+
+This project is licensed under the MIT License.
+
+
+**Thank you for exploring the Neural Network Library in Rust! If you have questions, feel free to raise an issue or contact me.**
