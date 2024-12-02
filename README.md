@@ -55,17 +55,19 @@ This library implements a basic feedforward neural network for classifying RF wa
 
 ```
 .
-├── Cargo.toml        # Project metadata and dependencies
+├── Cargo.toml          # Project metadata and dependencies
 ├── src
-│   ├── main.rs       # Entry point with CLI commands
-│   ├── activations.rs # Activation functions and derivatives
-│   ├── data.rs       # Data loading and preprocessing
-│   ├── layers.rs     # Dense layer implementation
-│   ├── loss.rs       # Loss function
+│   ├── main.rs         # Entry point with CLI commands
+│   ├── activations.rs  # Activation functions and derivatives
+│   ├── data.rs         # Data loading and preprocessing
+│   ├── layers.rs       # Dense layer implementation
+│   ├── loss.rs         # Loss function
 │   ├── serde_arrays.rs # Custom serialization for ndarray
-│   ├── train.rs      # Training logic
-│   ├── lib.rs        # Module declarations
-├── rfdatagenerator.py # Script for generating RF wave data
+│   ├── train.rs        # Training logic
+│   ├── lib.rs          # Module declarations
+├── rfdatagenerator.py  # Script for generating RF wave data
+├── visualize.py        # To visualize the predictions by the model
+
 ```
 ---
 ## **Dependencies**
