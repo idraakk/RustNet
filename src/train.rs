@@ -72,12 +72,15 @@ impl NeuralNetwork {
                 println!("Layer {}: d_w shape: {:?}", i, d_w.dim());
                 println!("Layer {}: db shape: {:?}", i, db.dim());
 
+                // Compute the gradient for the next layer using current weights.
+                let next_grad = d_z.dot(&layer.weights.t());
+
                 // Update weights and biases using the computed gradients.
                 layer.weights -= &(d_w * learning_rate);
                 layer.biases -= &(db.insert_axis(ndarray::Axis(0)) * learning_rate);
 
-                // Compute the gradient for the next layer.
-                gradient = Some(d_z.dot(&layer.weights.t()));
+                // Store the gradient for propagation to the previous layer.
+                gradient = Some(next_grad);
             } else {
                 // For hidden layers, compute the gradient of the activation function.
                 let d_a = gradient.unwrap();
@@ -92,12 +95,15 @@ impl NeuralNetwork {
                 println!("Layer {}: d_w shape: {:?}", i, d_w.dim());
                 println!("Layer {}: db shape: {:?}", i, db.dim());
 
+                // Compute the gradient for the next layer using current weights.
+                let next_grad = d_z.dot(&layer.weights.t());
+
                 // Update weights and biases.
                 layer.weights -= &(d_w * learning_rate);
                 layer.biases -= &(db.insert_axis(ndarray::Axis(0)) * learning_rate);
 
-                // Compute the gradient for the next layer.
-                gradient = Some(d_z.dot(&layer.weights.t()));
+                // Store the gradient for propagation to the previous layer.
+                gradient = Some(next_grad);
             }
         }
     }
